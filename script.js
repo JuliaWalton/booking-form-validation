@@ -1,14 +1,14 @@
+// populate service options
 const serviceSelect = document.getElementById('service'); 
 const serviceSpecifySelect = document.getElementById('service-specify');
 
-// should we change event to a select event or a change event? 
 serviceSelect.addEventListener('change', (e) => {
     // console.log(e.target.value);
     let val = e.target.value;
     switch (val) {
         case "item1":
             serviceSpecifySelect.innerHTML = 
-                `<option value="">--specify a type--</option>
+                `<option value="none">--specify a type--</option>
                 <option value="massage1">aromatherapy massage</option>
                 <option value="massage2">fire and ice massage</option>
                 <option value="massage3">prenatal massage</option>
@@ -56,163 +56,221 @@ serviceSelect.addEventListener('change', (e) => {
 
 
 
-const multiStepForm = document.querySelector('[data-multi-step]');
-const formSteps = [...document.querySelectorAll('[data-step]')];
-// console.log(formSteps)
-let currentStep = formSteps.findIndex((step, index) => {
-        return step.classList.contains('active');
-    })
-
-    // console.log(currentStep);
-
-    if (currentStep < 0) {
-        currentStep = 0;
-        // formSteps[currentStep].classList.add('active');
-        showCurrentStep();
-    }
-
-    // console.log(currentStep); 
-    
-    
-    function showCurrentStep() {
-        formSteps.forEach((step, index) => {
-            step.classList.toggle('active', index === currentStep)
-        })
-    }
 
 
-
-
-const inputs = [...formSteps[currentStep].querySelectorAll('input')];
-const selects = [...formSteps[currentStep].querySelectorAll('select')];
-// console.log(inputs)
-// console.log(selects)
-
-
-// inputs.forEach((input) => {
-//     if(input.hasAttribute('required')) {
-
-//     }
-// })
-
-
-const guestInput = document.getElementById('guests');
-// const serviceSelect = document.getElementById('service'); 
-// const serviceSpecifySelect = document.getElementById('service-specify');
-const dateInput = document.getElementById('date');
-const timeSelect = document.getElementById('time');
-
-
-console.log(dateInput.getAttribute('min'))
-let today = new Date().toISOString().slice(0, 10);
-dateInput.setAttribute('min', today);
-// let dd = today.getDate();
-// let mm = today.getMonth();
-// let yyyy = today.getFullYear();
-
-// console.log(today)
-// console.log(dd)
-// console.log(mm + 1)
-// console.log(yyyy)
-
+const form = document.querySelector('.form')
 const fnameInput = document.getElementById('fname');
 const lnameInput = document.getElementById('lname');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password')
 const password2Input = document.getElementById('password2')
+const guestInput = document.getElementById('guests');
+const dateInput = document.getElementById('date');
 
+function showError(input, message) {
+    const formGroup = input.parentElement;
+    formGroup.className = 'form-group error';
+    const small = formGroup.querySelector('small');
+    small.innerText = message;
+    return false; 
+}
 
+// Show success 
+function showSuccess(input) {
+    const formGroup = input.parentElement;
+    formGroup.className = 'form-group success';
+    return true;
+}
 
-
-
-
-
-
-
-
-        
-
-    multiStepForm.addEventListener('click', (e) => {
-        let incrementor; 
-        if (e.target.matches('[data-next]')) {
-            incrementor = 1;
-        } else if (e.target.matches('[data-previous]')) {
-            incrementor = -1;
-        } else if (e.target.matches('[data-submit]')) {
-            console.log('hhh')
-            e.preventDefault();
-            checkLength(passwordInput, 3, 20);
-            
-        } 
-
-        if (incrementor === undefined) {
-            return
-        }
-
-        const allSelectsValid = selects.every(select => select.reportValidity());
-        const allInputsValid = inputs.every(input => input.reportValidity());
-        
-        console.log(inputs);
-        console.log(allInputsValid)
-        console.log(allSelectsValid)
-        if(allInputsValid && allSelectsValid) {
-            currentStep += incrementor;
-            showCurrentStep();
-            // checkEmail(emailInput);
-            checkLength(passwordInput, 3, 20);
-            // checkPasswordmatch(passwordInput, password2Input);
-        }
-
-
-        // if (formSteps[1]) {
-        //     checkEmail(emailInput);
-        // }
-
-
-
-    })
-
-
-
-const form = document.querySelector('.form')
-
-
-// function checkEmail(email) {
-//     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-//     console.log(re.test(email.value.trim()))
-//     if (re.test(email.value.trim())) {
-//         console.log('success')
-//     } else {
-//         console.log('email is invalid')
-//     }
-// }
-
-
-function checkLength(password, min, max) {
-    if (password.value.length < min) {
-        password.setAttribute('oninvalid', `this.setCustomValidity('Password must be at least ${min} characters')`);
-    } else if (password.value.length > max) {
-        password.setAttribute('oninvalid', `this.setCustomValidity('Password cannot exceed ${max} characters')`);
-    } else {
-        return;
-    }
+function getFieldName(input) {
+    return input.id.charAt(0).toUpperCase() + input.id.slice(1);
 }
 
 
+// date input validation - enable only current date and 2 yrs beyond to be selected
+let today = new Date().toISOString().slice(0, 10);
+dateInput.setAttribute('min', today);
+console.log(dateInput)
+console.log(dateInput.getAttribute('min'))
+
+function checkDate(dateInput) {
+    let today = new Date().toISOString().slice(0, 10);
+    dateInput.setAttribute('min', today);
+    let oneYearFromNow = new Date().getFullYear();
+    dateInput.setAttribute('max', oneYearFromNow);
+
+    if (dateInput.value > oneYearFromNow) {
+        showError(dateInput, 'You cannot book this far in advance');
+    } else {
+        showSuccess(dateInput)
+    }
+}
+
+function checkGuests(guests, min, max) {
+    if (guests.value < min) {
+        showError(guests, `Must book at least ${min} guest`);
+    } else if (guests.value > max) {
+        showError(guests, `Cannot book more than ${max} guests`);
+    } else {
+        showSuccess(guests);
+    }
+}
+
+function checkNames(fname, lname) {
+    if (fname.value !== "") {
+        showSuccess(fname);
+    }
+    if (lname.value !== "") {
+        showSuccess(lname);
+    }
+}
+
+function checkEmail(email) {
+    console.log('email.test')
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        // console.log(re.test(email.value.trim()))
+        if (re.test(email.value.trim())) {
+            showSuccess(email);
+    } else {
+        showError(email, 'Email is not valid');
+    }
+    }
 
 
-// form.addEventListener('submit', (e) => {
-//     console.log('wtrf')
-// //     // const allSelectsValid = selects.every(select => select.reportValidity());
-// //     // const allInputsValid = inputs.every(input => input.reportValidity());
-// //     // console.log(inputs);
-// //     //     console.log(allInputsValid)
-// //     //     console.log(allSelectsValid)
-// //     // if(allInputsValid && allSelectsValid) {
-// //         checkLength(passwordInput, 3, 20);
-// //         checkPasswordmatch(passwordInput, password2Input);
-// //     // }
-// //     // e.preventDefault();
-//     checkLength(passwordInput, 3, 20);
-//     checkPasswordmatch(passwordInput, password2Input)
-// })
+// Check input length
+function checkLength(input, min, max) {
+    if (input.value.length < min) {
+        showError(
+        input,
+        `${getFieldName(input)} must be at least ${min} characters`
+        );
+    } else if (input.value.length > max) {
+        showError(
+        input,
+        `${getFieldName(input)} must be less than ${max} characters`
+        );
+    } else {
+        showSuccess(input);
+    }
+    }
+
+// Check passwords match
+function checkPasswordsMatch(input1, input2) {
+    if (input1.value !== input2.value) {
+        console.log('pass check')
+        showError(input2, 'Passwords do not match');
+    } else {
+        showSuccess(input2);
+    }
+    }
+
+
+const multiStepForm = document.querySelector('[data-multi-step]');
+const formSteps = [...document.querySelectorAll('[data-step]')];
+
+console.log(formSteps)
+let currentStep = formSteps.findIndex((step, index) => {
+        return step.classList.contains('active');
+    })
+
+    // the current step will return -1 if a class does not contain active
+    if (currentStep < 0) {
+        currentStep = 0;
+        showCurrentStep();
+    }
+
+    function showCurrentStep() {
+    formSteps.forEach((step, index) => {
+        step.classList.toggle('active', index === currentStep)
+    })
+}
+
+
+let incrementor;
+let validation = true;
+
+// validation loop & signal to go to next step
+function nextStep() {
+const inputs = [...formSteps[currentStep].querySelectorAll('input')];
+const selects = [...formSteps[currentStep].querySelectorAll('select')];
+
+    selects.forEach((select) => {
+        const checksPass = (currentValue) => currentValue.value !== "none";
+
+        if (select.classList.contains('required')) { 
+                if (select.value === "none") {
+                    select.style.backgroundColor = "pink";
+                    showError(select, `Selecting a service is required`);
+                    validation = false;
+                }  else if (selects.every(checksPass) === true) {
+                    validation = true;
+                    showSuccess(select);
+                    select.style.backgroundColor = "white";
+                }
+        } 
+    })
+
+    inputs.forEach((input) => {
+        if (input.classList.contains('required')) { 
+            if (input.value.trim() === "") {
+                input.style.backgroundColor = "pink";
+                showError(input, `${getFieldName(input)} is required`);
+                validation = false;
+            } else if (currentStep === 0) {
+                checkDate(dateInput);
+                checkGuests(guestInput, 1, 10);
+                const checksPass = (currentValue) => currentValue.parentElement.classList.contains('success');
+                console.log(inputs.every(checksPass))
+
+                if (inputs.every(checksPass) == true ) {
+                    validation = true;
+                }
+            }
+            else if(currentStep === 1) {
+                checkLength(passwordInput, 6, 25);
+                checkEmail(emailInput);
+                checkPasswordsMatch(passwordInput, password2Input);
+                checkNames(fnameInput, lnameInput);
+
+                const hasSuccess = (currentValue) => currentValue.parentElement.classList.contains('success');
+                console.log(inputs.every(hasSuccess))
+
+                if (inputs.every(hasSuccess) == true ) {
+                    incrementor = 1;
+                    currentStep += incrementor;
+                    showCurrentStep();
+                }
+            } else {
+                validation = true;
+            }
+        } else {
+            validation = true;
+            const formGroup = input.parentElement;
+            formGroup.className = 'form-group success';
+            }
+    })
+}
+
+const nextBtn = document.querySelector('[data-next]');
+const prevBtn = document.querySelector('[data-previous]');
+const submitBtn = document.querySelector('[data-submit]');
+
+nextBtn.addEventListener('click', (e) => {
+    nextStep();
+    if (validation === true) {
+    incrementor = 1;
+    currentStep += incrementor;
+    showCurrentStep();
+    }
+})
+
+prevBtn.addEventListener('click', (e) => {
+    incrementor = -1;
+    currentStep += incrementor;
+    showCurrentStep();
+})
+
+submitBtn.addEventListener('click', (e) => {
+    nextStep();
+})
+
